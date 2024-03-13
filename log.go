@@ -22,12 +22,19 @@ const (
 
 // Type and function aliases from zap to limit the libraries scope into MM code
 type Field = zapcore.Field
+type ObjectEncoder = zapcore.ObjectEncoder
 
 var Int64 = zap.Int64
 var Int = zap.Int
 var String = zap.String
 var Any = zap.Any
 var Err = zap.Error
+var Duration = zap.Duration
+var Object = zap.Object
+var Skip = zap.Skip
+var ObjectErr = func(error zapcore.ObjectMarshaler) Field {
+	return zap.Object("error", error)
+}
 
 type LoggerConfiguration struct {
 	EnableConsole bool
