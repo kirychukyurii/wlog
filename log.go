@@ -123,6 +123,7 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 func (l *Logger) ChangeLevels(config *LoggerConfiguration) {
 	l.consoleLevel.SetLevel(getZapLevel(config.ConsoleLevel))
 	l.fileLevel.SetLevel(getZapLevel(config.FileLevel))
+	l.exportLevel.SetLevel(getZapLevel(config.ExportLevel))
 }
 
 func (l *Logger) SetConsoleLevel(level string) {
@@ -137,6 +138,12 @@ func (l *Logger) With(fields ...Field) *Logger {
 
 func (l *Logger) StdLog(fields ...Field) *log.Logger {
 	return zap.NewStdLog(l.With(fields...).zap.WithOptions(getStdLogOption()))
+}
+
+func (l *Logger) Named(name string) *Logger {
+	return &Logger{
+		zap: l.zap.Named(name),
+	}
 }
 
 func (l *Logger) Debug(message string, fields ...Field) {
