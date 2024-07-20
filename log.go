@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"go.opentelemetry.io/contrib/bridges/otelzap"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -44,12 +45,15 @@ type LoggerConfiguration struct {
 	FileJson      bool
 	FileLevel     string
 	FileLocation  string
+	EnableExport  bool
+	ExportLevel   string
 }
 
 type Logger struct {
 	zap          *zap.Logger
 	consoleLevel zap.AtomicLevel
 	fileLevel    zap.AtomicLevel
+	exportLevel  zap.AtomicLevel
 }
 
 func getZapLevel(level string) zapcore.Level {
@@ -82,6 +86,7 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 	logger := &Logger{
 		consoleLevel: zap.NewAtomicLevelAt(getZapLevel(config.ConsoleLevel)),
 		fileLevel:    zap.NewAtomicLevelAt(getZapLevel(config.FileLevel)),
+		exportLevel:  zap.NewAtomicLevelAt(getZapLevel(config.ExportLevel)),
 	}
 
 	if config.EnableConsole {
@@ -97,6 +102,11 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 			Compress: true,
 		})
 		core := zapcore.NewCore(makeEncoder(config.FileJson), writer, logger.fileLevel)
+		cores = append(cores, core)
+	}
+
+	if config.EnableExport {
+		core := otelzap.NewCore("main")
 		cores = append(cores, core)
 	}
 
